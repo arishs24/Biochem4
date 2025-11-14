@@ -24,10 +24,10 @@ PROTEIN_HALF_LIVES_BASELINE = {
 
 # Protein Half-Lives (minutes) - Under HSP90 Inhibition
 PROTEIN_HALF_LIVES_INHIBITED = {
-    'MYCN': 15,      # minutes
-    'ALK': 60,       # 1 hour
-    'AKT': 120,      # 2 hours
-    'HIF1A': 10      # minutes
+    'MYCN': 5,       # minutes (increased collapse)
+    'ALK': 20,       # minutes (increased collapse)
+    'AKT': 40,       # minutes (increased collapse)
+    'HIF1A': 5       # minutes (increased collapse)
 }
 
 # HSP90 Inhibitor Pharmacokinetic Parameters
@@ -35,7 +35,7 @@ PROTEIN_HALF_LIVES_INHIBITED = {
 PK_17AAG = {
     'peak_time': 1.0,      # hours
     'half_life': 4.0,     # hours
-    'ic50': 100.0,        # nM
+    'ic50': 40.0,         # nM (clinically realistic: 30-50 nM)
     'name': '17-AAG'
 }
 
@@ -43,7 +43,7 @@ PK_17AAG = {
 PK_XL888 = {
     'peak_time': 1.0,      # hours
     'half_life': 4.0,     # hours
-    'ic50': 60.0,         # nM (average of 40-80 range)
+    'ic50': 25.0,         # nM (clinically realistic: 20-30 nM)
     'name': 'XL-888'
 }
 
@@ -51,21 +51,20 @@ PK_XL888 = {
 PK_DEBIO0932 = {
     'peak_time': 1.0,      # hours
     'half_life': 4.0,     # hours
-    'ic50': 50.0,         # nM
+    'ic50': 7.5,          # nM (clinically realistic: 5-10 nM)
     'name': 'Debio-0932'
 }
 
 # Dose-Response Parameters
-HILL_COEFFICIENT = 1.2
-E_MAX = 1.0  # Maximum effect (scaled by dependency)
+HILL_COEFFICIENT = 2.5  # Steep dose-response curve
 
 # Apoptosis Parameters
-APOPTOSIS_DELAY = 12.0  # hours before apoptosis increase
-APOPTOSIS_MULTIPLIER = 1.5  # multiplier based on dependency
+BASE_APOPTOSIS_COEFFICIENT = 0.001  # Base apoptosis rate per cell
+APOPTOSIS_GAIN_COEFFICIENT = 0.05  # Apoptosis gain multiplier
 
 # Simulation Defaults
 DEFAULT_SIMULATION_DURATION = 30  # days
 DEFAULT_TIME_STEP = 0.1  # days
-DEFAULT_DOSE = 100.0  # nM
-DEFAULT_DOSING_INTERVAL = 24.0  # hours
+DEFAULT_DOSE = 300.0  # nM (higher for therapeutic effect)
+DEFAULT_DOSING_INTERVAL = 12.0  # hours (more frequent dosing)
 

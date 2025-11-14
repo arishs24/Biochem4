@@ -58,6 +58,9 @@ def run_simulation(parameters: dict) -> dict:
     growth_rates = []
     apoptosis_rates = []
     
+    # Initialize protein levels tracking
+    current_protein_levels = {protein: 1.0 for protein in protein_model.proteins}
+    
     # Run simulation
     for i, t_hours in enumerate(time_hours):
         t_days = time_days[i]
@@ -77,21 +80,49 @@ def run_simulation(parameters: dict) -> dict:
         )
         drug_effects.append(effect)
         
-        # Update tumor
+        # Update protein levels (needed for MYCN-dependent growth)
+        if i > 0:
+            dt_minutes = (t_hours - time_hours[i-1]) * 60
+        else:
+            dt_minutes = 0.0
+        
+        if dt_minutes > 0:
+            for protein in protein_model.proteins:
+                baseline_half_life = protein_model.baseline_half_lives[protein]
+                half_life = protein_model.get_effective_half_life(protein, effect)
+                
+                # Decay rate
+                decay_rate = np.log(2) / half_life
+                
+                # Synthesis rate (constant, balances baseline degradation)
+                baseline_decay = np.log(2) / baseline_half_life
+                synthesis_rate = baseline_decay
+                
+                # Update protein level: dP/dt = synthesis - decay * P
+                current_level = current_protein_levels[protein]
+                dP = (synthesis_rate - decay_rate * current_level) * dt_minutes
+                current_level = max(0.0, current_level + dP)
+                current_protein_levels[protein] = current_level
+        
+        # Get MYCN level for growth calculation
+        mycn_level = current_protein_levels.get('MYCN', 1.0)
+        
+        # Update tumor with MYCN-dependent growth
         current_volume = tumor.update(
             drug_effect=effect,
             time_hours=t_hours,
-            time_step_days=time_step_days
+            time_step_days=time_step_days,
+            mycn_level=mycn_level
         )
         volumes.append(current_volume)
         
         # Record rates
-        growth = tumor.calculate_growth_rate(effect)
+        growth = tumor.calculate_growth_rate(effect, mycn_level)
         apoptosis = tumor.calculate_apoptosis_rate(effect, t_hours)
         growth_rates.append(growth)
         apoptosis_rates.append(apoptosis)
     
-    # Calculate protein stability levels
+    # Calculate protein stability levels for plotting (full time course)
     protein_levels = protein_model.calculate_protein_levels(
         time_hours=time_hours[-1],
         drug_effects=drug_effects,

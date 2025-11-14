@@ -23,10 +23,11 @@ def render_sidebar_controls() -> Dict:
     
     # Tumor subtype selection
     subtype_names = list(SUBTYPE_REGISTRY.keys())
+    # Default to MYCN Amplified (index 0)
     selected_subtype_name = st.sidebar.selectbox(
         "Tumor Subtype",
         subtype_names,
-        index=0,
+        index=0,  # MYCN Amplified
         help="Select the neuroblastoma subtype to simulate"
     )
     selected_subtype = SUBTYPE_REGISTRY[selected_subtype_name]
@@ -41,14 +42,14 @@ def render_sidebar_controls() -> Dict:
     # Drug selection
     st.sidebar.subheader("Drug Selection")
     drug_options = {
-        '17-AAG': PK_17AAG,
+        'Debio-0932': PK_DEBIO0932,
         'XL-888': PK_XL888,
-        'Debio-0932': PK_DEBIO0932
+        '17-AAG': PK_17AAG
     }
     selected_drug_name = st.sidebar.selectbox(
         "HSP90 Inhibitor",
         list(drug_options.keys()),
-        index=0
+        index=0  # Debio-0932 (most potent)
     )
     selected_drug_pk = drug_options[selected_drug_name]
     
@@ -58,7 +59,7 @@ def render_sidebar_controls() -> Dict:
         "Dose (nM)",
         min_value=10.0,
         max_value=500.0,
-        value=100.0,
+        value=300.0,  # Higher default for therapeutic effect
         step=10.0,
         help="Drug concentration per dose"
     )
@@ -67,7 +68,7 @@ def render_sidebar_controls() -> Dict:
         "Dosing Interval (hours)",
         min_value=6.0,
         max_value=48.0,
-        value=24.0,
+        value=12.0,  # More frequent dosing
         step=6.0,
         help="Time between doses"
     )

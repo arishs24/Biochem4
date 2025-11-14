@@ -4,7 +4,7 @@ HSP90 inhibitor pharmacokinetic and pharmacodynamic models.
 
 import numpy as np
 from typing import Dict, List
-from src.utils.parameters import HILL_COEFFICIENT, E_MAX
+from src.utils.parameters import HILL_COEFFICIENT
 
 
 class DrugModel:
@@ -69,25 +69,27 @@ class DrugModel:
         """
         Calculate drug effect using Hill equation.
         
+        Formula: effect = dependency * (C^h) / (IC50^h + C^h)
+        
         Args:
             concentration: Current drug concentration (nM)
             dependency: Tumor HSP90 dependency (0-1)
             
         Returns:
-            Effect magnitude (0-1), scaled by dependency
+            Effect magnitude (0-1), clamped to 1.0
         """
         if concentration <= 0:
             return 0.0
         
-        # Hill equation: E = Emax * C^h / (C^h + IC50^h)
+        # Hill equation: effect = dependency * (C^h) / (IC50^h + C^h)
         h = HILL_COEFFICIENT
         c_h = concentration ** h
         ic50_h = self.ic50 ** h
         
-        effect = E_MAX * c_h / (c_h + ic50_h)
+        effect = dependency * c_h / (ic50_h + c_h)
         
-        # Scale by dependency
-        return effect * dependency
+        # Clamp to maximum of 1.0
+        return min(effect, 1.0)
     
     def generate_dosing_schedule(
         self,
