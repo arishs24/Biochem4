@@ -109,14 +109,24 @@ E(t) = Emax * C(t)^h / (C(t)^h + IC50^h)
 ├── app.py                 # Main Streamlit application
 ├── requirements.txt       # Python dependencies
 ├── README.md             # This file
+├── data/
+│   ├── gdsc/             # GDSC drug response data
+│   └── depmap/           # DepMap omics data
+├── models/               # Saved ML models
 └── src/
     ├── models/
     │   ├── tumor_model.py      # Tumor growth and apoptosis
     │   ├── drug_model.py       # PK/PD models
     │   ├── pathways.py         # Protein stability
     │   └── subtypes.py         # Tumor subtype definitions
+    ├── ml/
+    │   ├── preprocess.py        # DepMap data preprocessing
+    │   ├── merge_datasets.py    # GDSC-DepMap merging
+    │   ├── train_model.py       # ML model training
+    │   └── predict_patient.py    # Patient prediction
     ├── ui/
-    │   └── dashboard.py        # Streamlit UI components
+    │   ├── dashboard.py         # Streamlit UI components
+    │   └── ml_dashboard.py      # ML-powered therapy UI
     └── utils/
         ├── parameters.py       # Biological constants
         └── plotting.py         # Visualization functions
@@ -204,17 +214,110 @@ All parameters are based on published literature:
 - Drug IC50 values: Cell line screening studies
 - Pharmacokinetics: Clinical trial data for HSP90 inhibitors
 
+## Machine Learning Module
+
+### Overview
+
+The ML module predicts patient-specific HSP90 inhibitor sensitivity using gradient boosting models trained on GDSC drug response data and DepMap omics data. Predictions are integrated into the digital twin to personalize therapy parameters.
+
+### Data Sources
+
+- **GDSC (Genomics of Drug Sensitivity in Cancer)**: Drug response data (IC50 values) for multiple HSP90 inhibitors across cancer cell lines
+- **DepMap (Cancer Dependency Map)**: Gene expression (RNA-seq TPM) and copy number variation (ABSOLUTE) data
+
+### ML Pipeline
+
+1. **Data Preprocessing** (`src/ml/preprocess.py`):
+   - Loads CCLE RNA expression and copy number data
+   - Normalizes gene names and filters low-expression genes
+   - Merges omics features into unified feature matrix
+   - Supports pan-cancer or neuroblastoma-only filtering
+
+2. **Data Merging** (`src/ml/merge_datasets.py`):
+   - Loads GDSC1 and GDSC2 dose response data
+   - Identifies HSP90 inhibitors (17-AAG, AUY922, IPI504, Ganetespib)
+   - Extracts IC50 values for each inhibitor
+   - Matches cell line IDs between GDSC and DepMap
+   - Creates ML-ready datasets (X = omics, y = IC50)
+
+3. **Model Training** (`src/ml/train_model.py`):
+   - Trains XGBoost regression models for each HSP90 inhibitor
+   - Performs train/test split with fixed random seed
+   - Evaluates performance (RMSE, R², MAE)
+   - Extracts and saves feature importance
+   - Saves trained models to `models/` directory
+
+4. **Patient Prediction** (`src/ml/predict_patient.py`):
+   - Accepts patient omics data (gene expression + CNV)
+   - Preprocesses to match training data format
+   - Predicts IC50 for all available HSP90 inhibitors
+   - Converts predictions to digital twin parameters:
+     - Predicted IC50 → drug sensitivity
+     - Sensitivity score → HSP90 dependency
+     - Best inhibitor → recommended drug
+
+### Using the ML Module
+
+#### Training Models
+
+```bash
+# Preprocess DepMap data
+python -m src.ml.preprocess
+
+# Merge GDSC and DepMap
+python -m src.ml.merge_datasets
+
+# Train models
+python -m src.ml.train_model
+```
+
+#### Predicting for a Patient
+
+```python
+from src.ml.predict_patient import predict_all_inhibitors, convert_to_digital_twin_params
+import pandas as pd
+
+# Load patient data (genes as columns)
+patient_data = pd.read_csv("patient_omics.csv", index_col=0)
+
+# Predict
+predictions = predict_all_inhibitors(patient_data, model_dir="models")
+
+# Convert to digital twin parameters
+dt_params = convert_to_digital_twin_params(predictions)
+```
+
+#### Streamlit Interface
+
+1. Navigate to "Personalized Therapy via ML" tab
+2. Upload patient omics data (CSV/TSV/Excel)
+3. Click "Predict Sensitivity"
+4. Review predictions and recommended therapy
+5. Apply ML predictions to simulation parameters
+6. Run personalized simulation
+
+### Integration with Digital Twin
+
+ML predictions automatically adjust:
+
+- **HSP90 Dependency**: Predicted sensitivity score modifies tumor subtype dependency
+- **Drug Selection**: Most sensitive inhibitor is recommended
+- **IC50 Values**: Predicted IC50 can inform drug model parameters (future enhancement)
+
+The digital twin simulation then uses these personalized parameters to predict patient-specific tumor response.
+
 ## Future Enhancements
 
 Potential improvements:
 
+- [x] ML-powered personalized therapy predictions
 - [ ] Add resistance mechanisms
 - [ ] Include combination therapy (multiple drugs)
 - [ ] Model tumor heterogeneity
-- [ ] Add patient-specific parameters
 - [ ] Include toxicity modeling
 - [ ] Export simulation data
 - [ ] Batch simulation mode
+- [ ] Real-time IC50 adjustment in drug model
 
 ## License
 
