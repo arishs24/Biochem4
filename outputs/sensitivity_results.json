@@ -1,0 +1,18 @@
+{
+  "subtype": "MYCN Amplified (High Risk)",
+  "drug": "17-AAG",
+  "duration_days": 30,
+  "baseline_ic50_nM": 40.0,
+  "baseline_final_volume_cells": 470791596.73204833,
+  "perturbation_low": {
+    "ic50_nM": 36.0,
+    "final_volume_cells": 451033463.32719463,
+    "percent_change_vs_baseline": -4.19678973499161
+  },
+  "perturbation_high": {
+    "ic50_nM": 44.0,
+    "final_volume_cells": 491974062.4589787,
+    "percent_change_vs_baseline": 4.499329612925612
+  },
+  "model_robust_to_10pct_perturbation": true
+}

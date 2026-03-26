@@ -1,0 +1,16 @@
+{
+  "subtype": "MYCN Amplified (High Risk)",
+  "drug": "17-AAG",
+  "duration_days": 30,
+  "case_a": {
+    "label": "No-ML (Literature IC50)",
+    "ic50_nM": 40.0,
+    "final_tumor_volume_cells": 470791596.73204833
+  },
+  "case_b": {
+    "label": "ML-Adjusted IC50",
+    "ic50_nM": 22.0,
+    "final_tumor_volume_cells": 397380869.49078435
+  },
+  "percent_reduction_final_volume": 15.59304111433531
+}
